@@ -26,9 +26,7 @@ export class JWABackendService extends BackendService {
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
-      map((resp: JWABackendResponse) => {
-        return resp.notebooks;
-      }),
+      map((resp: JWABackendResponse) => resp.notebooks),
     );
   }
 
@@ -52,9 +50,7 @@ export class JWABackendService extends BackendService {
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
-      map(data => {
-        return data.pvcs;
-      }),
+      map(data => data.pvcs),
     );
   }
 
@@ -64,9 +60,7 @@ export class JWABackendService extends BackendService {
 
     return this.http.get<JWABackendResponse>(url).pipe(
       catchError(error => this.handleError(error)),
-      map(data => {
-        return data.poddefaults;
-      }),
+      map(data => data.poddefaults),
     );
   }
 
@@ -86,9 +80,7 @@ export class JWABackendService extends BackendService {
 
     return this.http.post<JWABackendResponse>(url, notebook).pipe(
       catchError(error => this.handleError(error)),
-      map(_ => {
-        return 'posted';
-      }),
+      map(_ => 'posted'),
     );
   }
 
@@ -100,9 +92,7 @@ export class JWABackendService extends BackendService {
 
     return this.http.patch<JWABackendResponse>(url, { stopped: false }).pipe(
       catchError(error => this.handleError(error)),
-      map(_ => {
-        return 'started';
-      }),
+      map(_ => 'started'),
     );
   }
 
@@ -113,9 +103,7 @@ export class JWABackendService extends BackendService {
 
     return this.http.patch<JWABackendResponse>(url, { stopped: true }).pipe(
       catchError(error => this.handleError(error, false)),
-      map(_ => {
-        return 'stopped';
-      }),
+      map(_ => 'stopped'),
     );
   }
 
