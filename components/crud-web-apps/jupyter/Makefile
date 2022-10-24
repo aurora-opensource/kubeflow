@@ -14,6 +14,7 @@ image: docker-build docker-push
 
 
 HARBOR_IMG ?= harbor.cloud.aurora.tech/library/notebooks/jupyter-web-app
+GIT_TAG ?= $(shell git describe --tags --always --dirty)
 harbor-build:
 	cd ../ &&
 
