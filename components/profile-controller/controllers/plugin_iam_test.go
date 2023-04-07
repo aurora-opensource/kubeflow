@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,6 +20,24 @@ type AWSTestCase struct {
 	serviceAccountNamespace string
 	// service account name
 	serviceAccountName string
+}
+
+func TestIsUpdateIRSATrustRelationshipDisabled(t *testing.T) {
+	os.Setenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP, "false")
+	defer os.Unsetenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP)
+
+	assert.Equal(t, false, isUpdateIRSATrustRelationshipEnabled())
+}
+
+func TestIsUpdateIRSATrustRelationshipEnabled(t *testing.T) {
+	os.Setenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP, "true")
+	defer os.Unsetenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP)
+
+	assert.Equal(t, true, isUpdateIRSATrustRelationshipEnabled())
+}
+
+func TestIsUpdateIRSATrustRelationshipDefault(t *testing.T) {
+	assert.Equal(t, true, isUpdateIRSATrustRelationshipEnabled())
 }
 
 func TestAddIAMRoleAnnotation(t *testing.T) {
