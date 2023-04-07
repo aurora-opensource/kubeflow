@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
@@ -23,10 +25,23 @@ const (
 	AWS_ANNOTATION_KEY               = "eks.amazonaws.com/role-arn"
 	AWS_TRUST_IDENTITY_SUBJECT       = "system:serviceaccount:%s:%s"
 	AWS_DEFAULT_AUDIENCE             = "sts.amazonaws.com"
+
+	ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP = "ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP"
+	DEFAULT_EDITING_IAM_ROLE_TRUST_RELATIONSHIP = true
 )
 
 type AwsIAMForServiceAccount struct {
 	AwsIAMRole string `json:"awsIamRole,omitempty"`
+}
+
+// Checks if editing the trust relationship for IRSA is on.
+func isUpdateIRSATrustRelationshipEnabled() bool {
+	envVar := os.Getenv(ENV_ENABLE_EDITING_IAM_ROLE_TRUST_RELATIONSHIP)
+	if enabled, err := strconv.ParseBool(envVar); err != nil {
+		return DEFAULT_EDITING_IAM_ROLE_TRUST_RELATIONSHIP
+	} else  {
+		return enabled
+	}
 }
 
 // ApplyPlugin annotate service account with the ARN of the IAM role and update trust relationship of IAM role
@@ -35,8 +50,11 @@ func (aws *AwsIAMForServiceAccount) ApplyPlugin(r *ProfileReconciler, profile *p
 	if err := aws.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, addIAMRoleAnnotation, logger); err != nil {
 		return err
 	}
-	logger.Info("Setting up iam roles and policy for service account.", "ServiceAccount", aws.AwsIAMRole)
-	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_EDITOR, addServiceAccountInAssumeRolePolicy)
+	if isUpdateIRSATrustRelationshipEnabled() {
+		logger.Info("Setting up iam roles and policy for service account.", "ServiceAccount", aws.AwsIAMRole)
+		return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_EDITOR, addServiceAccountInAssumeRolePolicy)
+	}
+	return nil
 }
 
 // RevokePlugin remove role in service account annotation and delete service account record in IAM trust relationship.
@@ -45,8 +63,11 @@ func (aws *AwsIAMForServiceAccount) RevokePlugin(r *ProfileReconciler, profile *
 	if err := aws.patchAnnotation(r, profile.Name, DEFAULT_EDITOR, removeIAMRoleAnnotation, logger); err != nil {
 		return err
 	}
-	logger.Info("Clean up AWS IAM Role for Service Account.", "ServiceAccount", aws.AwsIAMRole)
-	return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_EDITOR, removeServiceAccountInAssumeRolePolicy)
+	if isUpdateIRSATrustRelationshipEnabled() {
+		logger.Info("Clean up AWS IAM Role for Service Account.", "ServiceAccount", aws.AwsIAMRole)
+		return aws.updateIAMForServiceAccount(profile.Name, DEFAULT_EDITOR, removeServiceAccountInAssumeRolePolicy)
+	}
+	return nil
 }
 
 // patchAnnotation will patch annotation to k8s service account in order to pair up with GCP identity
