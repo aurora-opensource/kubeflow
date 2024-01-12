@@ -255,8 +255,11 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 							WorkingDir:      "/",
 							Args: []string{
 								"--logdir=" + mountpath,
-								"--reload_interval",
-								"120",
+								// Set a reload interval of two minutes because the default of 5
+								// seconds costs can be very high when pulling data from Cloud
+								// Storage systems. See the tensorboard bug about reading from s3.
+								// https://github.com/tensorflow/tensorboard/issues/6564
+								"--reload_interval=120",
 								"--bind_all",
 							},
 							Ports: []corev1.ContainerPort{
