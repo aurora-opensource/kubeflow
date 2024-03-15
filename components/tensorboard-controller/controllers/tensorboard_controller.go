@@ -18,6 +18,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"os"
 	"reflect"
 	"strings"
@@ -268,6 +269,15 @@ func generateDeployment(tb *tensorboardv1alpha1.Tensorboard, log logr.Logger, r 
 								},
 							},
 							VolumeMounts: volumeMounts,
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("100m"),
+									corev1.ResourceMemory: resource.MustParse("1Gi"),
+								},
+								Limits: corev1.ResourceList{
+									corev1.ResourceMemory: resource.MustParse("2Gi"),
+								},
+							},
 						},
 					},
 					Volumes: volumes,
